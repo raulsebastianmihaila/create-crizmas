@@ -11,6 +11,7 @@ const flagTypes = {
   form: 'form',
   components: 'components',
   jsx: 'jsx',
+  layout: 'layout',
   githubApp: 'githubApp',
   help: 'help'
 };
@@ -21,6 +22,7 @@ const optionsMap = new Map([
   [flagTypes.form, ['-F', '--form']],
   [flagTypes.components, ['-C', '--components']],
   [flagTypes.jsx, ['-JSX', '--jsx']],
+  [flagTypes.layout, ['-L', '--layout']],
   [flagTypes.githubApp, ['-GA', '--github-app']],
   [flagTypes.help, ['-H', '--help']]
 ]);
@@ -126,6 +128,10 @@ const main = () => {
     return;
   }
 
+  if (checkLayoutOptionInconsistency()) {
+    return ;
+  }
+
   createPackageJson();
   createWebpackConfig();
   createSrc();
@@ -167,12 +173,24 @@ const checkHelpOption = () => {
     console.log('      - adds crizmas-components and its dependencies;');
     console.log('-JSX or --jsx');
     console.log('      - adds jsx support;');
+    console.log('-L or --layout');
+    console.log('      - adds a root layout component that renders a spinner during router'
+      + ' transitions and passes it to the Mvc instance. Requires the -R option;');
     console.log('-A or --all');
-    console.log('      - equivalent to -R -F -C -JSX;');
+    console.log('      - equivalent to -R -F -C -L -JSX;');
     console.log('-GA or --github-app');
     console.log('      - adds support for deploying as a github page;');
     console.log('-H or --help');
     console.log('      - displays helpful information about the command.');
+
+    return true;
+  }
+};
+
+const checkLayoutOptionInconsistency = () => {
+  if (hasLayoutOption() && !hasRouterOption()) {
+    console.error('When using the -L or --layout option, the -R or --router option must be passed'
+      + ' as well.');
 
     return true;
   }
@@ -200,6 +218,10 @@ const hasComponentsOption = () => {
 
 const hasJsxOption = () => {
   return hasAllOption() || isFlagActive(flagTypes.jsx);
+};
+
+const hasLayoutOption = () => {
+  return hasAllOption() || isFlagActive(flagTypes.layout);
 };
 
 const hasGithubAppOption = () => {
@@ -411,9 +433,11 @@ const createMainJs = () => {
   const mainJsWithRouterContents = `
     import Mvc from 'crizmas-mvc';
 
-    import router from './router';
+    import router from './router';${hasLayoutOption() ? `
+    import Layout from './pages/layout/layout';` : ''}
 
-    new Mvc({
+    new Mvc({${hasLayoutOption() ? `
+      component: Layout,` : ''}
       router,
       domElement: document.querySelector('#app')
     });
@@ -468,7 +492,13 @@ const createMainJs = () => {
 };
 
 const createMainCss = () => {
-  const mainCssContents = `
+  const mainCssContents = `${hasLayoutOption() ? `${`
+    @keyframes spin{0%{opacity:0;}50%{opacity:1;}100%{transform:rotate(360deg);opacity:0;}}
+    .transition-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.5);
+      z-index:99999;}
+    .transition-overlay::after{content:'';position:fixed;top:0;left:0;right:0;bottom:0;width:3px;
+      height:80px;background:#000;margin:auto;transform-origin:50%;
+      animation:spin 2s linear infinite;}`}` : ''}
     *{outline:none;}
     body{margin:0;font-family:arial;}
   `;
@@ -624,6 +654,10 @@ const createPages = () => {
   mkdirSync(join(currentWorkingDirectory, 'src/js/pages/home'));
   mkdirSync(join(currentWorkingDirectory, 'src/js/pages/not-found'));
 
+  if (hasLayoutOption()) {
+    mkdirSync(join(currentWorkingDirectory, 'src/js/pages/layout'));
+  }
+
   const homeComponentWithJsxContents = `
     import React from 'react';
 
@@ -660,6 +694,24 @@ const createPages = () => {
     };
   `;
 
+  const layoutWithJsxContents = `
+    import React from 'react';
+
+    export default ({router, children}) => <>
+      {router.isTransitioning && <div className="transition-overlay" />}
+      {children}
+    </>;
+  `;
+
+  const layoutWithoutJsxContents = `
+    import {fragment, div} from '../../dom';
+
+    export default ({router, children}) => fragment(
+      null,
+      router.isTransitioning && div({className: 'transition-overlay'}),
+      children);
+  `;
+
   writeFileSync(
     'src/js/pages/home/home.js',
     getFileContent(hasJsxOption()
@@ -671,6 +723,14 @@ const createPages = () => {
   writeFileSync(
     'src/js/pages/not-found/not-found.js',
     getFileContent(notFoundContents));
+
+  if (hasLayoutOption()) {
+    writeFileSync(
+      'src/js/pages/layout/layout.js',
+      getFileContent(hasJsxOption()
+        ? layoutWithJsxContents
+        : layoutWithoutJsxContents));
+  }
 };
 
 const createGitignore = () => {
