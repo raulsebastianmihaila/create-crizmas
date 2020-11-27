@@ -77,9 +77,11 @@ const packagesDependencies = new Map([
 
 const commonDependencies = [
   'clean-webpack-plugin',
-  'copy-webpack-plugin',
   'cross-env',
+  'css-loader',
   'html-webpack-plugin',
+  'mini-css-extract-plugin',
+  'optimize-css-assets-webpack-plugin',
   'webpack',
   'webpack-cli',
   'webpack-dev-server'
@@ -91,6 +93,10 @@ const jsxDependencies = [
   'babel-loader'
 ];
 
+const githubAppDependencies = [
+  'copy-webpack-plugin'
+];
+
 const versions = new Map([
   ['@babel/core', '^7.11.6'],
   ['@babel/preset-react', '^7.10.4'],
@@ -98,14 +104,17 @@ const versions = new Map([
   ['clean-webpack-plugin', '^3.0.0'],
   ['copy-webpack-plugin', '^6.1.1'],
   ['crizmas-async-utils', '^1.1.0'],
-  ['crizmas-components', '^1.5.2'],
+  ['crizmas-components', '^1.5.3'],
   ['crizmas-form', '^1.1.1'],
   ['crizmas-mvc', '^1.1.0'],
   ['crizmas-promise-queue', '^1.0.2'],
   ['crizmas-router', '^1.2.0'],
   ['crizmas-utils', '^1.0.3'],
   ['cross-env', '^7.0.2'],
+  ['css-loader', '^5.0.1'],
   ['html-webpack-plugin', '^4.5.0'],
+  ['mini-css-extract-plugin', '^1.3.1'],
+  ['optimize-css-assets-webpack-plugin', '^5.0.4'],
   ['prop-types', '^15.7.2'],
   ['react', '^16.13.1'],
   ['react-dom', '^16.13.1'],
@@ -250,6 +259,10 @@ const createPackageJson = () => {
     addJsxDepedencies(dependenciesSet);
   }
 
+  if (hasGithubAppOption()) {
+    addGithubAppDependencies(dependenciesSet);
+  }
+
   const packageJson = {
     name: dirname,
     private: true,
@@ -291,6 +304,12 @@ const addJsxDepedencies = (dependenciesSet) => {
   });
 };
 
+const addGithubAppDependencies = (dependenciesSet) => {
+  githubAppDependencies.forEach((dependency) => {
+    dependenciesSet.add(dependency);
+  });
+};
+
 const createWebpackConfig = () => {
   const webpackContents = `
     'use strict';
@@ -298,8 +317,13 @@ const createWebpackConfig = () => {
     const path = require('path');
     const webpack = require('webpack');
     const HtmlWebpackPlugin = require('html-webpack-plugin');
-    const {CleanWebpackPlugin} = require('clean-webpack-plugin');
-    const CopyWebpackPlugin = require('copy-webpack-plugin');
+    const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+    const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+    const {CleanWebpackPlugin} = require('clean-webpack-plugin');${
+      hasGithubAppOption()
+        ? '\n    const CopyWebpackPlugin = require(\'copy-webpack-plugin\');'
+        : ''
+    }
 
     const DefinePlugin = webpack.DefinePlugin;
     const mode = process.env.NODE_ENV;
@@ -320,48 +344,50 @@ const createWebpackConfig = () => {
       resolve: {
         extensions: ${hasJsxOption() ? `['.js', '.jsx']` : `['.js']`}
       },
-      ${hasJsxOption() ? `module: {
+      module: {
         rules: [
           {
-            test: /\.jsx?$/,
-            // normalization needed for windows
-            include: path.normalize(\`\${__dirname}/src\`),
-            use: [
-              {
-                loader: 'babel-loader',
-                options: {
-                  presets: ['@babel/react']
-                }
-              }
-            ]
+            test: /\.css$/,
+            use: [MiniCssExtractPlugin.loader, 'css-loader']
+          }${
+            hasJsxOption()
+              ? `,\n${getFragmentContent(getWebpackBabelLoaderFragment(), 3)}`
+              : ''
           }
         ]
       },
-      ` : ''}plugins: [
+      plugins: [
         new HtmlWebpackPlugin({
           chunksSortMode: 'none',
           template: './src/index.html',
           assetsPrefix: hasProductionBasePath ? \`/\${basePath}\` : ''
         }),
+        new MiniCssExtractPlugin({
+          filename: '[name].[hash].css'
+        }),
+        ...isProduction || isProductionTest
+          ? [
+            new OptimizeCSSAssetsPlugin({
+              cssProcessorOptions: {
+                map: {
+                  inline: false,
+                  annotation: true
+                }
+              }
+            })
+          ]
+          : [],
         new DefinePlugin({
           'process.env': {
             NODE_ENV: JSON.stringify(mode),
             basePath: JSON.stringify(hasProductionBasePath ? basePath : null)
           }
         }),
-        new CleanWebpackPlugin(),
-        ...isProduction || isProductionTest
-          ? [
-            new CopyWebpackPlugin({
-              patterns: [
-                {from: 'src/css', to: 'css'}${hasGithubAppOption()
-                  ? `,\n${' '.repeat(16)}{from: 'src/404.html', to: ''},\n${
-                    ' '.repeat(16)}{from: '.gitignore', to: ''}`
-                  : ''}
-              ]
-            })
-          ]
-          : []
+        new CleanWebpackPlugin()${
+          hasGithubAppOption()
+            ? `,\n${getFragmentContent(getWebpackCopyPluginFragment(), 2)}`
+            : ''
+        }
       ],
       devServer: {
         contentBase: 'src',
@@ -374,6 +400,52 @@ const createWebpackConfig = () => {
   `;
 
   writeFileSync('webpack.config.js', getFileContent(webpackContents));
+};
+
+const getFragmentContent = (
+  str,
+  tabsCount,
+  tabsSize = 2,
+  trimStartLinesCount = 1,
+  trimEndLinesCount = 1) => {
+  return str
+    .split('\n')
+    .slice(trimStartLinesCount, -trimEndLinesCount)
+    .map((line) => `${' '.repeat(tabsCount * tabsSize)}${line}`)
+    .join('\n');
+};
+
+const getWebpackBabelLoaderFragment = () => {
+  return `
+    {
+      test: /\.jsx?$/,
+      // normalization needed for windows
+      include: path.normalize(\`\${__dirname}/src\`),
+      use: [
+        {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/react']
+          }
+        }
+      ]
+    }
+  `;
+};
+
+const getWebpackCopyPluginFragment = () => {
+  return `
+    ...isProduction || isProductionTest
+      ? [
+        new CopyWebpackPlugin({
+          patterns: [
+            {from: 'src/404.html', to: ''},
+            {from: '.gitignore', to: ''}
+          ]
+        })
+      ]
+      : []
+  `;
 };
 
 const getFileContent = (str, tabsCount = 2, tabsSize = 2, trimLinesCount = 1) => {
@@ -414,11 +486,10 @@ const createSrc = () => {
 const createIndex = () => {
   const indexContents = `
     <!doctype html>
-    <html>
+    <html lang="en-EN">
       <head>
         <meta charset="utf-8" />
         <title>${dirname}</title>
-        <link rel="stylesheet" href="<%= htmlWebpackPlugin.options.assetsPrefix %>/css/main.css" />
       </head>
       <body>
         <div id="app"></div>
@@ -433,8 +504,13 @@ const createMainJs = () => {
   const mainJsWithRouterContents = `
     import Mvc from 'crizmas-mvc';
 
-    import router from './router';${hasLayoutOption() ? `
-    import Layout from './pages/layout/layout';` : ''}
+    import router from './router';${
+      hasLayoutOption()
+        ? '\n    import Layout from \'./pages/layout/layout\';'
+        : ''
+    }
+
+    import '../css/main.css';
 
     new Mvc({${hasLayoutOption() ? `
       component: Layout,` : ''}
