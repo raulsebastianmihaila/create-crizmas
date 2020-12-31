@@ -33,7 +33,6 @@ const packagesDependencies = new Map([
   [
     'crizmas-mvc',
     [
-      'crizmas-utils',
       'react',
       'react-dom'
     ]
@@ -42,35 +41,23 @@ const packagesDependencies = new Map([
     'crizmas-router',
     [
       'crizmas-mvc',
-      'crizmas-utils',
-      'crizmas-async-utils',
-      'react',
-      'prop-types'
-    ]
-  ],
-  [
-    'crizmas-async-utils',
-    [
-      'crizmas-utils'
+      'prop-types',
+      'react'
     ]
   ],
   [
     'crizmas-form',
     [
-      'crizmas-mvc',
-      'crizmas-utils',
-      'crizmas-async-utils',
-      'crizmas-promise-queue'
+      'crizmas-mvc'
     ]
   ],
   [
     'crizmas-components',
     [
       'crizmas-mvc',
-      'crizmas-utils',
-      'smart-mix',
+      'prop-types',
       'react',
-      'prop-types'
+      'smart-mix'
     ]
   ]
 ]);
@@ -103,13 +90,10 @@ const versions = new Map([
   ['babel-loader', '^8.1.0'],
   ['clean-webpack-plugin', '^3.0.0'],
   ['copy-webpack-plugin', '^6.1.1'],
-  ['crizmas-async-utils', '^1.1.0'],
-  ['crizmas-components', '^1.5.3'],
-  ['crizmas-form', '^1.1.1'],
-  ['crizmas-mvc', '^1.1.0'],
-  ['crizmas-promise-queue', '^1.0.2'],
-  ['crizmas-router', '^1.2.0'],
-  ['crizmas-utils', '^1.0.3'],
+  ['crizmas-components', '^2.0.0'],
+  ['crizmas-form', '^2.0.0'],
+  ['crizmas-mvc', '^2.0.0'],
+  ['crizmas-router', '^2.0.0'],
   ['cross-env', '^7.0.2'],
   ['css-loader', '^5.0.1'],
   ['html-webpack-plugin', '^4.5.0'],
@@ -118,7 +102,7 @@ const versions = new Map([
   ['prop-types', '^15.7.2'],
   ['react', '^16.13.1'],
   ['react-dom', '^16.13.1'],
-  ['smart-mix', '^1.1.0'],
+  ['smart-mix', '^2.0.0'],
   ['webpack', '^4.44.2'],
   ['webpack-cli', '^3.3.12'],
   ['webpack-dev-server', '^3.11.0']
@@ -347,6 +331,10 @@ const createWebpackConfig = () => {
       module: {
         rules: [
           {
+            include: /${hasComponentsOption() ? '(crizmas-|smart-mix)' : 'crizmas-'}/,
+            sideEffects: false
+          },
+          {
             test: /\.css$/,
             use: [MiniCssExtractPlugin.loader, 'css-loader']
           }${
@@ -520,14 +508,16 @@ const createMainJs = () => {
   `;
 
   const mainJsWithoutRouterWithJsxContents = `
-    import Mvc from 'crizmas-mvc';
+    import Mvc, {controller} from 'crizmas-mvc';
     import React from 'react';
+
+    import '../css/main.css';
 
     const Main = () => {
       return <div>Hello, world! Date: {String(mainController.date)}</div>;
     };
 
-    const mainController = Mvc.controller({
+    const mainController = controller({
       date: new Date()
     });
 
@@ -538,9 +528,11 @@ const createMainJs = () => {
   `;
 
   const mainJsWithoutRouterWithoutJsxContents = `
-    import Mvc from 'crizmas-mvc';
+    import Mvc, {controller} from 'crizmas-mvc';
 
     import {div} from './dom';
+
+    import '../css/main.css';
 
     const Main = () => {
       return div(
@@ -548,7 +540,7 @@ const createMainJs = () => {
         \`Hello, world! Date: \${mainController.date}\`);
     };
 
-    const mainController = Mvc.controller({
+    const mainController = controller({
       date: new Date()
     });
 
@@ -753,9 +745,9 @@ const createPages = () => {
   `;
 
   const homeRouteControllerContents = `
-    import Mvc from 'crizmas-mvc';
+    import {controller} from 'crizmas-mvc';
 
-    export default Mvc.controller(function HomeRouteController() {
+    export default controller(function HomeRouteController() {
       const ctrl = {
         date: new Date()
       };
