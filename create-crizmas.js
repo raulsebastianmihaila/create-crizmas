@@ -3,7 +3,7 @@
 'use strict';
 
 const {writeFileSync, mkdirSync} = require('fs');
-const {join, basename} = require('path');
+const {basename} = require('path');
 
 const flagTypes = {
   all: 'all',
@@ -90,7 +90,7 @@ const versions = new Map([
   ['babel-loader', '^8.1.0'],
   ['clean-webpack-plugin', '^3.0.0'],
   ['copy-webpack-plugin', '^6.1.1'],
-  ['crizmas-components', '^2.0.1'],
+  ['crizmas-components', '^2.0.2'],
   ['crizmas-form', '^2.0.0'],
   ['crizmas-mvc', '^2.0.1'],
   ['crizmas-router', '^2.0.1'],
@@ -109,8 +109,7 @@ const versions = new Map([
 ]);
 
 const passedOptions = new Set(process.argv.slice(2));
-const currentWorkingDirectory = process.cwd();
-const dirname = basename(currentWorkingDirectory);
+const dirname = basename(process.cwd());
 
 const main = () => {
   if (checkUnknownOptions()) {
@@ -260,7 +259,7 @@ const createPackageJson = () => {
   };
 
   writeFileSync(
-    join(currentWorkingDirectory, 'package.json'),
+    'package.json',
     JSON.stringify(packageJson, null, 2));
 };
 
@@ -445,14 +444,14 @@ const getFileContent = (str, tabsCount = 2, tabsSize = 2, trimLinesCount = 1) =>
 };
 
 const createSrc = () => {
-  mkdirSync(join(currentWorkingDirectory, 'src'));
+  mkdirSync('src');
   createIndex();
-  mkdirSync(join(currentWorkingDirectory, 'src/js'));
+  mkdirSync('src/js');
   createMainJs();
   createMainCss();
-  mkdirSync(join(currentWorkingDirectory, 'src/js/models'));
-  mkdirSync(join(currentWorkingDirectory, 'src/js/controllers'));
-  mkdirSync(join(currentWorkingDirectory, 'src/js/components'));
+  mkdirSync('src/js/models');
+  mkdirSync('src/js/controllers');
+  mkdirSync('src/js/components');
   createApi();
 
   if (!hasJsxOption()) {
@@ -571,12 +570,12 @@ const createMainCss = () => {
     body{margin:0;font-family:arial;}
   `;
 
-  mkdirSync(join(currentWorkingDirectory, 'src/css'));
+  mkdirSync('src/css');
   writeFileSync('src/css/main.css', getFileContent(mainCssContents));
 };
 
 const createApi = () => {
-  mkdirSync(join(currentWorkingDirectory, 'src/js/api'));
+  mkdirSync('src/js/api');
 
   const httpContents = `
     const headers = {
@@ -718,12 +717,12 @@ const createRouter = () => {
 };
 
 const createPages = () => {
-  mkdirSync(join(currentWorkingDirectory, 'src/js/pages'));
-  mkdirSync(join(currentWorkingDirectory, 'src/js/pages/home'));
-  mkdirSync(join(currentWorkingDirectory, 'src/js/pages/not-found'));
+  mkdirSync('src/js/pages');
+  mkdirSync('src/js/pages/home');
+  mkdirSync('src/js/pages/not-found');
 
   if (hasLayoutOption()) {
-    mkdirSync(join(currentWorkingDirectory, 'src/js/pages/layout'));
+    mkdirSync('src/js/pages/layout');
   }
 
   const homeComponentWithJsxContents = `

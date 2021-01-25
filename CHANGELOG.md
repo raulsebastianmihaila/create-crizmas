@@ -1,3 +1,10 @@
+<a name="2.0.2"></a>
+# [2.0.2](https://github.com/raulsebastianmihaila/create-crizmas/compare/v2.0.1...v2.0.2) (2021-01-25)
+
+### Updates
+- Update the version of crizmas-components.
+- Remove unneeded use of current working directory path.
+
 <a name="2.0.1"></a>
 # [2.0.1](https://github.com/raulsebastianmihaila/create-crizmas/compare/v2.0.0...v2.0.1) (2021-01-03)
 
