@@ -63,12 +63,11 @@ const packagesDependencies = new Map([
 ]);
 
 const commonDependencies = [
-  'clean-webpack-plugin',
   'cross-env',
   'css-loader',
+  'css-minimizer-webpack-plugin',
   'html-webpack-plugin',
   'mini-css-extract-plugin',
-  'optimize-css-assets-webpack-plugin',
   'webpack',
   'webpack-cli',
   'webpack-dev-server'
@@ -85,27 +84,26 @@ const githubAppDependencies = [
 ];
 
 const versions = new Map([
-  ['@babel/core', '^7.11.6'],
-  ['@babel/preset-react', '^7.10.4'],
-  ['babel-loader', '^8.1.0'],
-  ['clean-webpack-plugin', '^3.0.0'],
-  ['copy-webpack-plugin', '^6.1.1'],
-  ['crizmas-components', '^2.0.2'],
-  ['crizmas-form', '^2.0.0'],
-  ['crizmas-mvc', '^2.0.1'],
-  ['crizmas-router', '^2.0.1'],
-  ['cross-env', '^7.0.2'],
-  ['css-loader', '^5.0.1'],
-  ['html-webpack-plugin', '^4.5.0'],
-  ['mini-css-extract-plugin', '^1.3.1'],
-  ['optimize-css-assets-webpack-plugin', '^5.0.4'],
+  ['@babel/core', '^7.15.0'],
+  ['@babel/preset-react', '^7.14.5'],
+  ['babel-loader', '^8.2.2'],
+  ['copy-webpack-plugin', '^9.0.1'],
+  ['crizmas-components', '^2.0.3'],
+  ['crizmas-form', '^2.0.1'],
+  ['crizmas-mvc', '^2.0.3'],
+  ['crizmas-router', '^2.0.3'],
+  ['cross-env', '^7.0.3'],
+  ['css-loader', '^6.2.0'],
+  ['css-minimizer-webpack-plugin', '^3.0.2'],
+  ['html-webpack-plugin', '^5.3.2'],
+  ['mini-css-extract-plugin', '^2.2.0'],
   ['prop-types', '^15.7.2'],
-  ['react', '^17.0.1'],
-  ['react-dom', '^17.0.1'],
-  ['smart-mix', '^2.0.0'],
-  ['webpack', '^4.44.2'],
-  ['webpack-cli', '^3.3.12'],
-  ['webpack-dev-server', '^3.11.0']
+  ['react', '^17.0.2'],
+  ['react-dom', '^17.0.2'],
+  ['smart-mix', '^2.0.1'],
+  ['webpack', '^5.51.1'],
+  ['webpack-cli', '^4.8.0'],
+  ['webpack-dev-server', '^4.0.0']
 ]);
 
 const passedOptions = new Set(process.argv.slice(2));
@@ -250,7 +248,7 @@ const createPackageJson = () => {
     name: dirname,
     private: true,
     scripts: {
-      start: 'cross-env NODE_ENV=development webpack-dev-server',
+      start: 'cross-env NODE_ENV=development webpack serve',
       build: 'cross-env NODE_ENV=production webpack'
     },
     dependencies: Object.fromEntries([...dependenciesSet].sort().map((dependency) => {
@@ -301,8 +299,7 @@ const createWebpackConfig = () => {
     const webpack = require('webpack');
     const HtmlWebpackPlugin = require('html-webpack-plugin');
     const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-    const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-    const {CleanWebpackPlugin} = require('clean-webpack-plugin');${
+    const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');${
       hasGithubAppOption()
         ? '\n    const CopyWebpackPlugin = require(\'copy-webpack-plugin\');'
         : ''
@@ -322,7 +319,8 @@ const createWebpackConfig = () => {
       output: {
         path: path.resolve(__dirname, 'dist'),
         publicPath: hasProductionBasePath ? \`/\${basePath}/\` : '/',
-        filename: '[name].bundle-[hash].js'
+        filename: '[name].bundle-[contenthash].js',
+        clean: true
       },
       resolve: {
         extensions: ${hasJsxOption() ? `['.js', '.jsx']` : `['.js']`}
@@ -334,8 +332,9 @@ const createWebpackConfig = () => {
             sideEffects: false
           },
           {
-            test: /\.css$/,
-            use: [MiniCssExtractPlugin.loader, 'css-loader']
+            test: /\\.css$/,
+            use: [MiniCssExtractPlugin.loader, 'css-loader'],
+            sideEffects: true
           }${
             hasJsxOption()
               ? `,\n${getFragmentContent(getWebpackBabelLoaderFragment(), 3)}`
@@ -343,6 +342,15 @@ const createWebpackConfig = () => {
           }
         ]
       },
+      ...(isProduction || isProductionTest)
+        && {
+          optimization: {
+            minimizer: [
+              '...',
+              new CssMinimizerPlugin()
+            ]
+          }
+        },
       plugins: [
         new HtmlWebpackPlugin({
           chunksSortMode: 'none',
@@ -350,34 +358,20 @@ const createWebpackConfig = () => {
           assetsPrefix: hasProductionBasePath ? \`/\${basePath}\` : ''
         }),
         new MiniCssExtractPlugin({
-          filename: '[name].[hash].css'
+          filename: '[name].[contenthash].css'
         }),
-        ...isProduction || isProductionTest
-          ? [
-            new OptimizeCSSAssetsPlugin({
-              cssProcessorOptions: {
-                map: {
-                  inline: false,
-                  annotation: true
-                }
-              }
-            })
-          ]
-          : [],
         new DefinePlugin({
           'process.env': {
             NODE_ENV: JSON.stringify(mode),
             basePath: JSON.stringify(hasProductionBasePath ? basePath : null)
           }
-        }),
-        new CleanWebpackPlugin()${
+        })${
           hasGithubAppOption()
             ? `,\n${getFragmentContent(getWebpackCopyPluginFragment(), 2)}`
             : ''
         }
       ],
       devServer: {
-        contentBase: 'src',
         port: 5556,
         historyApiFallback: {
           index: '/'
@@ -405,7 +399,7 @@ const getFragmentContent = (
 const getWebpackBabelLoaderFragment = () => {
   return `
     {
-      test: /\.jsx?$/,
+      test: /\\.jsx?$/,
       // normalization needed for windows
       include: path.normalize(\`\${__dirname}/src\`),
       use: [

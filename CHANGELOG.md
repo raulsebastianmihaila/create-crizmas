@@ -1,3 +1,13 @@
+<a name="2.0.3"></a>
+# [2.0.3](https://github.com/raulsebastianmihaila/create-crizmas/compare/v2.0.2...v2.0.3) (2021-08-22)
+
+### Updates
+- Updated the @babel/core, @babel/preset-react, babel-loader, copy-webpack-plugin, crizmas-components, crizmas-form, crizmas-mvc, crizmas-router, cross-env, css-loader, html-webpack-plugin, mini-css-extract-plugin, react, react-dom, smart-mix, webpack, webpack-cli and webpack-dev-server package.json dependencies.
+- Updated the webpack configuration based on webpack v5.
+- Improved the test regexes for the module rules in the webpack configuration.
+- Removed the clean-webpack-plugin package.json dependency.
+- Replaced the optimize-css-assets-webpack-plugin plugin with css-minimizer-webpack-plugin.
+
 <a name="2.0.2"></a>
 # [2.0.2](https://github.com/raulsebastianmihaila/create-crizmas/compare/v2.0.1...v2.0.2) (2021-01-25)
 
