@@ -305,11 +305,12 @@ const createWebpackConfig = () => {
         : ''
     }
 
-    const DefinePlugin = webpack.DefinePlugin;
+    const {DefinePlugin} = webpack;
     const mode = process.env.NODE_ENV;
     const basePath = ${hasGithubAppOption() ? `'${dirname}'` : `null`};
     const isProductionTest = false;
     const isProduction = mode === 'production' && !isProductionTest;
+    const isProductionLike = isProduction || isProductionTest;
     const hasProductionBasePath = isProduction && !!basePath;
 
     module.exports = {
@@ -319,7 +320,7 @@ const createWebpackConfig = () => {
       output: {
         path: path.resolve(__dirname, 'dist'),
         publicPath: hasProductionBasePath ? \`/\${basePath}/\` : '/',
-        filename: '[name].bundle-[contenthash].js',
+        filename: isProductionLike ? '[name].bundle-[contenthash].js' : '[name].bundle.js',
         clean: true
       },
       resolve: {
@@ -342,7 +343,7 @@ const createWebpackConfig = () => {
           }
         ]
       },
-      ...(isProduction || isProductionTest)
+      ...isProductionLike
         && {
           optimization: {
             minimizer: [
@@ -358,7 +359,7 @@ const createWebpackConfig = () => {
           assetsPrefix: hasProductionBasePath ? \`/\${basePath}\` : ''
         }),
         new MiniCssExtractPlugin({
-          filename: '[name].[contenthash].css'
+          filename: isProductionLike ? '[name].[contenthash].css' : '[name].css'
         }),
         new DefinePlugin({
           'process.env': {

@@ -1,3 +1,9 @@
+<a name="2.0.4"></a>
+# [2.0.4](https://github.com/raulsebastianmihaila/create-crizmas/compare/v2.0.3...v2.0.4) (2021-08-29)
+
+### Fixes
+- Fix watching css in development mode by enabling content hash only in production like environments.
+
 <a name="2.0.3"></a>
 # [2.0.3](https://github.com/raulsebastianmihaila/create-crizmas/compare/v2.0.2...v2.0.3) (2021-08-22)
 
