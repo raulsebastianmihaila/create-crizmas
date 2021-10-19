@@ -1,3 +1,9 @@
+<a name="2.0.5"></a>
+# [2.0.5](https://github.com/raulsebastianmihaila/create-crizmas/compare/v2.0.4...v2.0.5) (2021-10-19)
+
+### Updates
+- Update the version of crizmas-components.
+
 <a name="2.0.4"></a>
 # [2.0.4](https://github.com/raulsebastianmihaila/create-crizmas/compare/v2.0.3...v2.0.4) (2021-08-29)
 

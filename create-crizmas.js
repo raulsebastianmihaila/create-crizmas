@@ -88,7 +88,7 @@ const versions = new Map([
   ['@babel/preset-react', '^7.14.5'],
   ['babel-loader', '^8.2.2'],
   ['copy-webpack-plugin', '^9.0.1'],
-  ['crizmas-components', '^2.0.3'],
+  ['crizmas-components', '^2.0.4'],
   ['crizmas-form', '^2.0.1'],
   ['crizmas-mvc', '^2.0.3'],
   ['crizmas-router', '^2.0.3'],
