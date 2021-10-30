@@ -1,6 +1,6 @@
 {
   "name": "create-crizmas",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "description": "Command for creating crizmas-mvc apps",
   "license": "MIT",
   "private": true,
