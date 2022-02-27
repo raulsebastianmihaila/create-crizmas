@@ -1,3 +1,9 @@
+<a name="2.0.8"></a>
+# [2.0.8](https://github.com/raulsebastianmihaila/create-crizmas/compare/v2.0.7...v2.0.8) (2022-02-27)
+
+### Updates
+- Update the versions of the packages.
+
 <a name="2.0.7"></a>
 # [2.0.7](https://github.com/raulsebastianmihaila/create-crizmas/compare/v2.0.6...v2.0.7) (2021-10-30)
 

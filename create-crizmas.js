@@ -84,26 +84,26 @@ const githubAppDependencies = [
 ];
 
 const versions = new Map([
-  ['@babel/core', '^7.15.0'],
-  ['@babel/preset-react', '^7.14.5'],
-  ['babel-loader', '^8.2.2'],
-  ['copy-webpack-plugin', '^9.0.1'],
-  ['crizmas-components', '^2.1.1'],
-  ['crizmas-form', '^2.0.1'],
-  ['crizmas-mvc', '^2.0.3'],
-  ['crizmas-router', '^2.0.3'],
+  ['@babel/core', '^7.17.5'],
+  ['@babel/preset-react', '^7.16.7'],
+  ['babel-loader', '^8.2.3'],
+  ['copy-webpack-plugin', '^10.2.4'],
+  ['crizmas-components', '^2.1.2'],
+  ['crizmas-form', '^2.0.2'],
+  ['crizmas-mvc', '^2.0.5'],
+  ['crizmas-router', '^2.0.5'],
   ['cross-env', '^7.0.3'],
-  ['css-loader', '^6.2.0'],
-  ['css-minimizer-webpack-plugin', '^3.0.2'],
-  ['html-webpack-plugin', '^5.3.2'],
-  ['mini-css-extract-plugin', '^2.2.0'],
-  ['prop-types', '^15.7.2'],
+  ['css-loader', '^6.6.0'],
+  ['css-minimizer-webpack-plugin', '^3.4.1'],
+  ['html-webpack-plugin', '^5.5.0'],
+  ['mini-css-extract-plugin', '^2.5.3'],
+  ['prop-types', '^15.8.1'],
   ['react', '^17.0.2'],
   ['react-dom', '^17.0.2'],
   ['smart-mix', '^2.0.1'],
-  ['webpack', '^5.51.1'],
-  ['webpack-cli', '^4.8.0'],
-  ['webpack-dev-server', '^4.0.0']
+  ['webpack', '^5.69.1'],
+  ['webpack-cli', '^4.9.2'],
+  ['webpack-dev-server', '^4.7.4']
 ]);
 
 const passedOptions = new Set(process.argv.slice(2));
